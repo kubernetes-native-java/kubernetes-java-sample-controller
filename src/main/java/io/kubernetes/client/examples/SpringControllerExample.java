@@ -18,18 +18,16 @@ import io.kubernetes.client.extended.controller.builder.DefaultControllerBuilder
 import io.kubernetes.client.extended.controller.reconciler.Reconciler;
 import io.kubernetes.client.extended.controller.reconciler.Request;
 import io.kubernetes.client.extended.controller.reconciler.Result;
+import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
-import io.kubernetes.client.openapi.models.V1Endpoints;
-import io.kubernetes.client.openapi.models.V1EndpointsList;
+import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.models.V1Node;
 import io.kubernetes.client.openapi.models.V1NodeList;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
-import io.kubernetes.client.spring.extended.controller.annotation.GroupVersionResource;
-import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformer;
-import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformers;
+import io.kubernetes.client.util.generic.GenericKubernetesApi;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -72,24 +70,32 @@ public class SpringControllerExample {
 		}
 
 		@Bean
-		public SharedInformerFactory sharedInformerFactory() {
-			return new MySharedInformerFactory();
+		public SharedIndexInformer<V1Node> nodeInformer(ApiClient apiClient,
+				SharedInformerFactory sharedInformerFactory) {
+			final GenericKubernetesApi<V1Node, V1NodeList> api = new GenericKubernetesApi<>(V1Node.class,
+					V1NodeList.class, "", "v1", "nodes", apiClient);
+			return sharedInformerFactory.sharedIndexInformerFor(api, V1Node.class, 0);
 		}
 
-	}
+		@Bean
+		public SharedIndexInformer<V1Pod> podInformer(ApiClient apiClient,
+				SharedInformerFactory sharedInformerFactory) {
+			final GenericKubernetesApi<V1Pod, V1PodList> api = new GenericKubernetesApi<>(V1Pod.class, V1PodList.class,
+					"", "v1", "pods", apiClient);
+			return sharedInformerFactory.sharedIndexInformerFor(api, V1Pod.class, 0);
+		}
 
-	// Defining what resources is the informer-factory actually watching.
-	@KubernetesInformers({
-			@KubernetesInformer(apiTypeClass = V1Endpoints.class, apiListTypeClass = V1EndpointsList.class,
-					groupVersionResource = @GroupVersionResource(apiGroup = "", apiVersion = "v1",
-							resourcePlural = "endpoints")),
-			@KubernetesInformer(apiTypeClass = V1Node.class, apiListTypeClass = V1NodeList.class,
-					groupVersionResource = @GroupVersionResource(apiGroup = "", apiVersion = "v1",
-							resourcePlural = "nodes")),
-			@KubernetesInformer(apiTypeClass = V1Pod.class, apiListTypeClass = V1PodList.class,
-					groupVersionResource = @GroupVersionResource(apiGroup = "", apiVersion = "v1",
-							resourcePlural = "pods")), })
-	public static class MySharedInformerFactory extends SharedInformerFactory {
+		@Bean
+		public Lister<V1Node> nodeLister(SharedIndexInformer<V1Node> podInformer) {
+			Lister<V1Node> lister = new Lister<>(podInformer.getIndexer());
+			return lister;
+		}
+
+		@Bean
+		public Lister<V1Pod> podLister(SharedIndexInformer<V1Pod> podInformer) {
+			Lister<V1Pod> lister = new Lister<>(podInformer.getIndexer());
+			return lister;
+		}
 
 	}
 
