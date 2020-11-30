@@ -13,6 +13,8 @@
 	<properties>
 		<kubernetes.client.version>10.0.1-SNAPSHOT</kubernetes.client.version>
 	</properties>
+	<groupId>org.example</groupId>
+	<version>0.0.1-SNAPSHOT</version>
 	<artifactId>spring-controller</artifactId>
 	<name>spring-controller</name>
 
@@ -31,8 +33,81 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.experimental</groupId>
+			<artifactId>spring-graalvm-native</artifactId>
+			<version>0.8.3</version>
+		</dependency>
 
 	</dependencies>
 
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<image>
+						<env>
+							<BP_BOOT_NATIVE_IMAGE>1</BP_BOOT_NATIVE_IMAGE>
+						</env>
+					</image>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-release</id>
+			<name>Spring release</name>
+			<url>https://repo.spring.io/release</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</pluginRepository>
+		<pluginRepository>
+			<id>spring-snapshot</id>
+			<name>Spring Snapshots</name>
+			<url>https://repo.spring.io/snapshot</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</pluginRepository>
+		<pluginRepository>
+			<id>spring-milestone</id>
+			<name>Spring Milestone</name>
+			<url>https://repo.spring.io/milestone</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
+	<repositories>
+		<repository>
+			<id>spring-release</id>
+			<name>Spring release</name>
+			<url>https://repo.spring.io/release</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>spring-snapshot</id>
+			<name>Spring Snapshots</name>
+			<url>https://repo.spring.io/snapshot</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>spring-milestone</id>
+			<name>Spring Milestone</name>
+			<url>https://repo.spring.io/milestone</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
 
 </project>
