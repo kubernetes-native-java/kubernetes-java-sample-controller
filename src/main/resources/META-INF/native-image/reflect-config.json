@@ -1208,5 +1208,33 @@
 				"parameterTypes": []
 			}
 		]
+	},
+	{
+		"name": "io.kubernetes.client.custom.Quantity$QuantityAdapter",
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		]
+	},
+	{
+		"name": "io.kubernetes.client.custom.IntOrString$IntOrStringAdapter",
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		]
+	},
+	{
+		"name": "io.kubernetes.client.util.Watch$Response",
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+		"allDeclaredFields": true
 	}
 ]
