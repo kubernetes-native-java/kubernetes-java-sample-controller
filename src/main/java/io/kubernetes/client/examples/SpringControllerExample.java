@@ -13,6 +13,8 @@ limitations under the License.
 package io.kubernetes.client.examples;
 
 import io.kubernetes.client.extended.controller.Controller;
+import io.kubernetes.client.extended.controller.builder.ControllerBuilder;
+import io.kubernetes.client.extended.controller.builder.DefaultControllerBuilder;
 import io.kubernetes.client.extended.controller.reconciler.Reconciler;
 import io.kubernetes.client.extended.controller.reconciler.Request;
 import io.kubernetes.client.extended.controller.reconciler.Result;
@@ -28,14 +30,7 @@ import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.spring.extended.controller.annotation.GroupVersionResource;
 import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformer;
 import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformers;
-import io.kubernetes.client.spring.extended.controller.annotation.KubernetesReconciler;
-import io.kubernetes.client.spring.extended.controller.annotation.KubernetesReconcilerReadyFunc;
-import io.kubernetes.client.spring.extended.controller.annotation.KubernetesReconcilerWatch;
-import io.kubernetes.client.spring.extended.controller.annotation.KubernetesReconcilerWatches;
-import io.kubernetes.client.spring.extended.controller.factory.KubernetesControllerFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -55,21 +50,25 @@ public class SpringControllerExample {
 	public static class AppConfig {
 
 		@Bean
-		public CommandLineRunner commandLineRunner(SharedInformerFactory sharedInformerFactory,
-				@Qualifier("nodePrintingController") Controller nodePrintingController) {
+		public CommandLineRunner commandLineRunner(SharedInformerFactory sharedInformerFactory, Controller controller) {
 			return args -> {
 				System.out.println("starting informers..");
 				sharedInformerFactory.startAllRegisteredInformers();
 
 				System.out.println("running controller..");
-				nodePrintingController.run();
+				controller.run();
 			};
 		}
 
 		@Bean
-		public KubernetesControllerFactory nodePrintingController(SharedInformerFactory sharedInformerFactory,
+		public Controller nodePrintingController(SharedInformerFactory sharedInformerFactory,
 				NodePrintingReconciler reconciler) {
-			return new KubernetesControllerFactory(sharedInformerFactory, reconciler);
+			DefaultControllerBuilder builder = ControllerBuilder.defaultBuilder(sharedInformerFactory);
+			builder = builder.watch((q) -> {
+				return ControllerBuilder.controllerWatchBuilder(V1Node.class, q).build();
+			});
+			builder.withReadyFunc(reconciler::informerReady);
+			return builder.withReconciler(reconciler).withName("nodePrintingController").build();
 		}
 
 		@Bean
@@ -94,31 +93,29 @@ public class SpringControllerExample {
 
 	}
 
-	// fully resync every 1 minute
-	@KubernetesReconciler(
-			watches = @KubernetesReconcilerWatches(@KubernetesReconcilerWatch(apiTypeClass = V1Node.class)))
-
 	@Component
 	public static class NodePrintingReconciler implements Reconciler {
 
 		@Value("${namespace}")
 		private String namespace;
 
-		@Autowired
 		private SharedInformer<V1Node> nodeInformer;
 
-		@Autowired
 		private SharedInformer<V1Pod> podInformer;
 
-		@Autowired
 		private Lister<V1Node> nodeLister;
 
-		@Autowired
 		private Lister<V1Pod> podLister;
 
-		// *OPTIONAL*
-		// If you feed like hold the controller from running util some condition..
-		@KubernetesReconcilerReadyFunc
+		public NodePrintingReconciler(SharedInformer<V1Node> nodeInformer, SharedInformer<V1Pod> podInformer,
+				Lister<V1Node> nodeLister, Lister<V1Pod> podLister) {
+			super();
+			this.nodeInformer = nodeInformer;
+			this.podInformer = podInformer;
+			this.nodeLister = nodeLister;
+			this.podLister = podLister;
+		}
+
 		public boolean informerReady() {
 			return podInformer.hasSynced() && nodeInformer.hasSynced();
 		}
