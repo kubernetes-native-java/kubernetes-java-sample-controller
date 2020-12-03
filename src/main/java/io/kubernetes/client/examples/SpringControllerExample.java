@@ -12,6 +12,8 @@ limitations under the License.
 */
 package io.kubernetes.client.examples;
 
+import java.time.Duration;
+
 import io.kubernetes.client.extended.controller.Controller;
 import io.kubernetes.client.extended.controller.builder.ControllerBuilder;
 import io.kubernetes.client.extended.controller.builder.DefaultControllerBuilder;
@@ -63,7 +65,16 @@ public class SpringControllerExample {
 				NodePrintingReconciler reconciler) {
 			DefaultControllerBuilder builder = ControllerBuilder.defaultBuilder(sharedInformerFactory);
 			builder = builder.watch((q) -> {
-				return ControllerBuilder.controllerWatchBuilder(V1Node.class, q).build();
+				return ControllerBuilder.controllerWatchBuilder(V1Node.class, q).withWorkQueueKeyFunc(node -> {
+					System.err.println("Node: " + node.getMetadata().getName());
+					return new Request(node.getMetadata().getName());
+				}).withResyncPeriod(Duration.ofHours(1)).build();
+			});
+			builder = builder.watch((q) -> {
+				return ControllerBuilder.controllerWatchBuilder(V1Pod.class, q).withWorkQueueKeyFunc(pod -> {
+					System.err.println("Pod: " + pod.getMetadata().getName());
+					return new Request(pod.getMetadata().getName());
+				}).withResyncPeriod(Duration.ofHours(1)).build();
 			});
 			builder.withReadyFunc(reconciler::informerReady);
 			return builder.withReconciler(reconciler).withName("nodePrintingController").build();
@@ -130,11 +141,16 @@ public class SpringControllerExample {
 		public Result reconcile(Request request) {
 			V1Node node = nodeLister.get(request.getName());
 
-			System.out.println("get all pods in namespace " + namespace);
-			podLister.namespace(namespace).list().stream().map(pod -> pod.getMetadata().getName())
-					.forEach(System.out::println);
+			if (node != null) {
 
-			System.out.println("triggered reconciling " + node.getMetadata().getName());
+				System.out.println("get all pods in namespace " + namespace);
+				podLister.namespace(namespace).list().stream().map(pod -> pod.getMetadata().getName())
+						.forEach(System.out::println);
+
+				System.out.println("triggered reconciling " + node.getMetadata().getName());
+
+			}
+
 			return new Result(false);
 		}
 
