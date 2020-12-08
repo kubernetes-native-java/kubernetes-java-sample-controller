@@ -24,6 +24,10 @@
 			<artifactId>client-java-spring-integration</artifactId>
 			<version>${kubernetes.client.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
 		<!--for spring controller example -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

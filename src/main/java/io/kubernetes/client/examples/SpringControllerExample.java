@@ -30,6 +30,7 @@ import io.kubernetes.client.openapi.models.V1NodeList;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
+import io.prometheus.client.CollectorRegistry;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -77,6 +78,7 @@ public class SpringControllerExample {
 				}).withResyncPeriod(Duration.ofHours(1)).build();
 			});
 			builder.withReadyFunc(reconciler::informerReady);
+			builder.withWorkerCount(2);
 			return builder.withReconciler(reconciler).withName("nodePrintingController").build();
 		}
 
@@ -106,6 +108,12 @@ public class SpringControllerExample {
 		public Lister<V1Pod> podLister(SharedIndexInformer<V1Pod> podInformer) {
 			Lister<V1Pod> lister = new Lister<>(podInformer.getIndexer());
 			return lister;
+		}
+
+		@Bean
+		// https://github.com/spring-projects/spring-boot/issues/24377
+		public CollectorRegistry collectorRegistry() {
+			return CollectorRegistry.defaultRegistry;
 		}
 
 	}
