@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: configserver
+  labels:
+    app: configserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      configserver: configserver
+  template:
+    metadata:
+      labels:
+        configserver: configserver
+    spec:
+      containers:
+        - image: springcloud/configserver
+          name: configserver
+          ports:
+            - containerPort: 8888
+              name: configserver
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: configserver
+  labels:
+    configserver: configserver
+spec:
+  ports:
+    - port: 80
+      targetPort: 8888
+  selector:
+    configserver: configserver
