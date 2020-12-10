@@ -1,0 +1,6 @@
+apiVersion: spring.io/v1
+kind: ConfigClient
+metadata:
+  name: demo
+spec:
+  url: http://localhost:8888/app/default

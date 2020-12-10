@@ -14,7 +14,7 @@ package io.kubernetes.client.examples;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -46,6 +46,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
 public class SpringControllerExample {
@@ -217,10 +218,63 @@ public class SpringControllerExample {
 			metadata.setName(node.getMetadata().getName());
 			metadata.setNamespace(node.getMetadata().getNamespace());
 			config.setMetadata(metadata);
-			config.setData(Collections.emptyMap());
+			Environment environment = fetchEnvironment(node);
+			config.setData(environment.toMap());
 			return config;
 		}
 
+		private Environment fetchEnvironment(V1ConfigClient node) {
+			RestTemplate rest = new RestTemplate();
+			return rest.getForObject(node.getSpec().getUrl(), Environment.class);
+		}
+
+	}
+
+}
+
+class PropertySource {
+
+	private String name;
+
+	private Map<String, String> source;
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public Map<String, String> getSource() {
+		return source;
+	}
+
+	public void setSource(Map<String, String> source) {
+		this.source = source;
+	}
+
+}
+
+class Environment {
+
+	private PropertySource[] propertySources;
+
+	public PropertySource[] getPropertySources() {
+		return propertySources;
+	}
+
+	public Map<String, String> toMap() {
+		Map<String, String> map = new HashMap<>();
+		for (int i = propertySources.length; i-- > 0;) {
+			PropertySource source = propertySources[i];
+			map.putAll(source.getSource());
+		}
+		return map;
+	}
+
+	public void setPropertySources(PropertySource[] propertySources) {
+		this.propertySources = propertySources;
 	}
 
 }
