@@ -39,7 +39,33 @@ Then you can move on to the controller.
 
 ```
 ./mvnw spring-boot:run
-``` 
+```
+
+Verify that it works:
+
+```
+kubectl get configmaps
+```
+
+output:
+
+```
+NAME   DATA   AGE
+demo   4      84m
+```
+
+If you delete the owning resource, the config map is also deleted:
+
+```
+kubectl delete -f src/test/k8s/debug.yaml
+kubectl get configmaps
+```
+
+output:
+
+```
+No resources found in default namespace.
+```
 
 ## Native Image
 
