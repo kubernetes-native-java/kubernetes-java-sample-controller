@@ -1245,5 +1245,75 @@
 				"parameterTypes": []
 			}
 		]
+	},
+	{
+		"name": "io.kubernetes.client.openapi.models.V1ConfigMap",
+		"allDeclaredFields": true,
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		]
+	},
+	{
+		"name": "io.kubernetes.client.openapi.models.V1ConfigMapList",
+		"allDeclaredFields": true,
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		]
+	},
+	{
+		"name": "io.kubernetes.client.examples.models.V1ConfigClient",
+		"allDeclaredFields": true,
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		]
+	},
+	{
+		"name": "io.kubernetes.client.examples.models.V1ConfigClientList",
+		"allDeclaredFields": true,
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		]
+	},
+	{
+		"name": "io.kubernetes.client.examples.models.V1ConfigClientSpec",
+		"allDeclaredFields": true,
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		]
+	},
+	{
+		"name": "io.kubernetes.client.examples.models.V1ConfigClientStatus",
+		"allDeclaredFields": true,
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		]
+	},
+	{
+		"name": "io.kubernetes.client.examples.Environment",
+		"allDeclaredMethods": true,
+		"allDeclaredConstructors": true
+	},
+	{
+		"name": "io.kubernetes.client.examples.PropertySource",
+		"allDeclaredMethods": true,
+		"allDeclaredConstructors": true
 	}
 ]

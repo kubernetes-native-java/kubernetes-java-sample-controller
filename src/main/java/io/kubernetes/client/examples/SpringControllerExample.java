@@ -261,7 +261,7 @@ class PropertySource {
 
 class Environment {
 
-	private PropertySource[] propertySources;
+	private PropertySource[] propertySources = new PropertySource[0];
 
 	public PropertySource[] getPropertySources() {
 		return propertySources;
