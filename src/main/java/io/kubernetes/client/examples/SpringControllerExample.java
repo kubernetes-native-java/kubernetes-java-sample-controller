@@ -21,6 +21,7 @@ import java.util.Objects;
 
 import io.kubernetes.client.examples.models.V1ConfigClient;
 import io.kubernetes.client.examples.models.V1ConfigClientList;
+import io.kubernetes.client.examples.models.V1ConfigClientStatus;
 import io.kubernetes.client.extended.controller.Controller;
 import io.kubernetes.client.extended.controller.builder.ControllerBuilder;
 import io.kubernetes.client.extended.controller.builder.DefaultControllerBuilder;
@@ -45,6 +46,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
@@ -102,11 +104,15 @@ public class SpringControllerExample {
 
 		private SharedIndexInformer<V1ConfigClient> nodeInformer;
 
+		private GenericKubernetesApi<V1ConfigClient, V1ConfigClientList> configclients;
+
 		public ConfigClientReconciler(SharedIndexInformer<V1ConfigClient> nodeInformer, ApiClient apiClient) {
 			super();
 			this.nodeInformer = nodeInformer;
 			this.configmaps = new GenericKubernetesApi<>(V1ConfigMap.class, V1ConfigMapList.class, "", "v1",
 					"configmaps", apiClient);
+			this.configclients = new GenericKubernetesApi<>(V1ConfigClient.class, V1ConfigClientList.class, "spring.io",
+					"v1", "configclients", apiClient);
 		}
 
 		@Override
@@ -116,6 +122,8 @@ public class SpringControllerExample {
 			V1ConfigClient parent = nodeLister.get(request.getName());
 
 			if (parent != null) {
+
+				Boolean complete = parent.getStatus() == null ? null : parent.getStatus().getComplete();
 
 				System.out.println("reconciling " + parent.getMetadata().getName());
 				List<V1ConfigMap> items = new ArrayList<>();
@@ -164,22 +172,28 @@ public class SpringControllerExample {
 					try {
 						actual = configmaps.create(desired).throwsApiException().getObject();
 						System.out.println("created " + actual);
-						return new Result(false);
 					}
 					catch (ApiException e) {
 						throw new IllegalStateException(e);
 					}
 				}
+				else {
 
-				harmonizeImmutableFields(actual, desired);
-				if (semanticEquals(desired, actual)) {
-					return new Result(false);
+					harmonizeImmutableFields(actual, desired);
+					if (semanticEquals(desired, actual)) {
+						return new Result(false);
+					}
+
+					V1ConfigMap current = actual;
+					mergeBeforeUpdate(current, desired);
+
+					configmaps.update(current);
+
 				}
 
-				V1ConfigMap current = actual;
-				mergeBeforeUpdate(current, desired);
-
-				configmaps.update(current);
+				if (complete != parent.getStatus().getComplete()) {
+					configclients.update(parent);
+				}
 
 			}
 
@@ -222,13 +236,28 @@ public class SpringControllerExample {
 			metadata.setNamespace(node.getMetadata().getNamespace());
 			config.setMetadata(metadata);
 			Environment environment = fetchEnvironment(node);
-			config.setData(environment.toMap());
+			if (node.getStatus() == null) {
+				node.setStatus(new V1ConfigClientStatus());
+			}
+			if (environment == null) {
+				node.getStatus().setComplete(false);
+			}
+			else {
+				config.setData(environment.toMap());
+				node.getStatus().setComplete(true);
+			}
 			return config;
 		}
 
 		private Environment fetchEnvironment(V1ConfigClient node) {
 			RestTemplate rest = new RestTemplate();
-			return rest.getForObject(node.getSpec().getUrl(), Environment.class);
+			try {
+				return rest.getForObject(node.getSpec().getUrl(), Environment.class);
+			}
+			catch (RestClientException e) {
+				e.printStackTrace();
+				return null;
+			}
 		}
 
 	}
