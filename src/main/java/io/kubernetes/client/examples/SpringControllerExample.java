@@ -37,7 +37,6 @@ import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1OwnerReference;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
-import io.prometheus.client.CollectorRegistry;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -91,12 +90,6 @@ public class SpringControllerExample {
 			return sharedInformerFactory.sharedIndexInformerFor(api, V1ConfigClient.class, 0);
 		}
 
-		@Bean
-		// https://github.com/spring-projects/spring-boot/issues/24377
-		public CollectorRegistry collectorRegistry() {
-			return CollectorRegistry.defaultRegistry;
-		}
-
 	}
 
 	@Component
@@ -120,19 +113,21 @@ public class SpringControllerExample {
 		public Result reconcile(Request request) {
 			Lister<V1ConfigClient> nodeLister = new Lister<>(nodeInformer.getIndexer(), request.getNamespace());
 
-			V1ConfigClient node = nodeLister.get(request.getName());
+			V1ConfigClient parent = nodeLister.get(request.getName());
 
-			if (node != null) {
+			if (parent != null) {
 
-				System.out.println("reconciling " + node.getMetadata().getName());
+				System.out.println("reconciling " + parent.getMetadata().getName());
 				List<V1ConfigMap> items = new ArrayList<>();
 				for (V1ConfigMap item : configmaps.list(request.getNamespace()).getObject().getItems()) {
 					System.out.println("  configmap " + item.getMetadata().getName());
-					for (V1OwnerReference owner : item.getMetadata().getOwnerReferences()) {
-						if (node.getMetadata().getUid().equals(owner.getUid())) {
-							System.out.println("    owned " + owner.getName());
-							items.add(item);
-							break;
+					if (item.getMetadata().getOwnerReferences() != null) {
+						for (V1OwnerReference owner : item.getMetadata().getOwnerReferences()) {
+							if (parent.getMetadata().getUid().equals(owner.getUid())) {
+								System.out.println("    owned " + owner.getName());
+								items.add(item);
+								break;
+							}
 						}
 					}
 				}
@@ -143,27 +138,33 @@ public class SpringControllerExample {
 				}
 				else {
 					for (V1ConfigMap item : items) {
+						System.out.println("deleting " + item);
 						configmaps.delete(item.getMetadata().getNamespace(), item.getMetadata().getName());
 					}
 				}
 
-				V1ConfigMap desired = desired(node);
+				V1ConfigMap desired = desired(parent);
 				if (desired == null) {
-					configmaps.delete(actual.getMetadata().getNamespace(), actual.getMetadata().getName());
+					if (actual != null) {
+						System.out.println("deletes " + actual);
+						configmaps.delete(actual.getMetadata().getNamespace(), actual.getMetadata().getName());
+					}
 					return new Result(false);
 				}
 
 				V1OwnerReference v1OwnerReference = new V1OwnerReference();
-				v1OwnerReference.setKind(node.getKind());
-				v1OwnerReference.setName(node.getMetadata().getName());
+				v1OwnerReference.setKind(parent.getKind());
+				v1OwnerReference.setName(parent.getMetadata().getName());
 				v1OwnerReference.setBlockOwnerDeletion(true);
-				v1OwnerReference.setController(true);
-				v1OwnerReference.setUid(node.getMetadata().getUid());
-				v1OwnerReference.setApiVersion(node.getApiVersion());
+				// v1OwnerReference.setController(true);
+				v1OwnerReference.setUid(parent.getMetadata().getUid());
+				v1OwnerReference.setApiVersion(parent.getApiVersion());
 				desired.getMetadata().addOwnerReferencesItem(v1OwnerReference);
 				if (actual == null) {
 					try {
 						actual = configmaps.create(desired).throwsApiException().getObject();
+						System.out.println("created " + actual);
+						return new Result(false);
 					}
 					catch (ApiException e) {
 						throw new IllegalStateException(e);
@@ -214,6 +215,8 @@ public class SpringControllerExample {
 
 		private V1ConfigMap desired(V1ConfigClient node) {
 			V1ConfigMap config = new V1ConfigMap();
+			config.setApiVersion("v1");
+			config.setKind("ConfigMap");
 			V1ObjectMeta metadata = new V1ObjectMeta();
 			metadata.setName(node.getMetadata().getName());
 			metadata.setNamespace(node.getMetadata().getNamespace());
