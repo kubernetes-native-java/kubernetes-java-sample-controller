@@ -5,104 +5,6 @@ metadata:
     control-plane: controller-manager
   name: spring-system
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  creationTimestamp: null
-  name: configclients.spring.io
-spec:
-  preserveUnknownFields: false
-  additionalPrinterColumns:
-  - JSONPath: .spec.url
-    description: config url
-    name: URL
-    type: string
-  - JSONPath: .status.complete
-    description: config status
-    name: Complete
-    type: boolean
-  group: spring.io
-  names:
-    kind: ConfigClient
-    listKind: ConfigClientList
-    plural: configclients
-    singular: configclient
-  scope: ""
-  subresources:
-    status: {}
-  validation:
-    openAPIV3Schema:
-      description: ConfigClient is the Schema for the springs API
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
-        kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
-        metadata:
-          type: object
-        spec:
-          description: ConfigClientSpec defines the desired state of ConfigClient
-          properties:
-            url:
-              type: string
-          type: object
-        status:
-          description: ConfigClientStatus defines the observed state of ConfigClient
-          properties:
-            complete:
-              type: boolean
-            observedGeneration:
-              format: int64
-              type: integer
-          type: object
-      type: object
-  version: v1
-  versions:
-  - name: v1
-    served: true
-    storage: true
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: spring-leader-election-role
-  namespace: spring-system
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - configmaps
-  verbs:
-  - get
-  - list
-  - watch
-  - create
-  - update
-  - patch
-  - delete
-- apiGroups:
-  - ""
-  resources:
-  - configmaps/status
-  verbs:
-  - get
-  - update
-  - patch
-- apiGroups:
-  - ""
-  resources:
-  - events
-  verbs:
-  - create
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -185,20 +87,6 @@ rules:
   - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: spring-leader-election-rolebinding
-  namespace: spring-system
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: spring-leader-election-role
-subjects:
-- kind: ServiceAccount
-  name: default
-  namespace: spring-system
----
-apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: spring-manager-rolebinding
@@ -228,6 +116,7 @@ apiVersion: v1
 kind: Service
 metadata:
   annotations:
+    prometheus.io/path: /actuator/prometheus
     prometheus.io/port: "8443"
     prometheus.io/scheme: https
     prometheus.io/scrape: "true"
@@ -263,7 +152,6 @@ spec:
       containers:
       - args:
         - --metrics-addr=127.0.0.1:8080
-        - --enable-leader-election
         command:
         - /manager
         image: dsyer/spring-config-operator:latest

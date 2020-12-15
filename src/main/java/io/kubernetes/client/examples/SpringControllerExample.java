@@ -164,7 +164,7 @@ public class SpringControllerExample {
 				v1OwnerReference.setKind(parent.getKind());
 				v1OwnerReference.setName(parent.getMetadata().getName());
 				v1OwnerReference.setBlockOwnerDeletion(true);
-				// v1OwnerReference.setController(true);
+				v1OwnerReference.setController(true);
 				v1OwnerReference.setUid(parent.getMetadata().getUid());
 				v1OwnerReference.setApiVersion(parent.getApiVersion());
 				desired.getMetadata().addOwnerReferencesItem(v1OwnerReference);
@@ -180,19 +180,16 @@ public class SpringControllerExample {
 				else {
 
 					harmonizeImmutableFields(actual, desired);
-					if (semanticEquals(desired, actual)) {
-						return new Result(false);
+					if (!semanticEquals(desired, actual)) {
+						V1ConfigMap current = actual;
+						mergeBeforeUpdate(current, desired);
+						configmaps.update(current);
 					}
-
-					V1ConfigMap current = actual;
-					mergeBeforeUpdate(current, desired);
-
-					configmaps.update(current);
 
 				}
 
 				if (complete != parent.getStatus().getComplete()) {
-					configclients.update(parent);
+					configclients.update(parent).isSuccess();
 				}
 
 			}

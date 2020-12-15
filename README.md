@@ -28,7 +28,12 @@ kubectl port-forward svc/configserver 8888:80
 ## Install CRDs
 
 ```
-kubectl apply -f src/main/k8s/base/configclient.yaml
+kubectl apply -f src/main/k8s/crds/configclient.yaml
+```
+
+Create a resource instance:
+
+```
 kubectl apply -f src/test/k8s/debug.yaml
 ```
 
