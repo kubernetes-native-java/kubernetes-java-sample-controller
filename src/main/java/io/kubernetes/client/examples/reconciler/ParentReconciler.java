@@ -17,26 +17,33 @@ package io.kubernetes.client.examples.reconciler;
 
 import java.util.List;
 
+import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.extended.controller.reconciler.Reconciler;
 import io.kubernetes.client.extended.controller.reconciler.Request;
 import io.kubernetes.client.extended.controller.reconciler.Result;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.util.generic.GenericKubernetesApi;
 
 /**
  * @author Dave Syer
  *
  */
-public class ParentReconciler<T extends KubernetesObject> implements Reconciler {
+public class ParentReconciler<T extends KubernetesObject, L extends KubernetesListObject> implements Reconciler {
 
 	private SharedIndexInformer<T> parentInformer;
 
 	private SubReconciler<T>[] reconcilers;
 
+	private GenericKubernetesApi<T, L> api;
+
 	@SuppressWarnings("unchecked")
-	public ParentReconciler(SharedIndexInformer<T> parentInformer, List<SubReconciler<T>> reconcilers) {
+	public ParentReconciler(SharedIndexInformer<T> parentInformer, GenericKubernetesApi<T, L> api,
+			List<SubReconciler<T>> reconcilers) {
 		this.parentInformer = parentInformer;
+		this.api = api;
 		this.reconcilers = (SubReconciler<T>[]) reconcilers.toArray();
 	}
 
@@ -54,6 +61,14 @@ public class ParentReconciler<T extends KubernetesObject> implements Reconciler 
 
 			for (SubReconciler<T> subReconciler : reconcilers) {
 				result = aggregate(subReconciler.reconcile(parent), result);
+			}
+
+			// TODO: make this conditional on the status having changed
+			try {
+				api.update(parent).throwsApiException();
+			}
+			catch (ApiException e) {
+				throw new IllegalStateException("Cannot update parent", e);
 			}
 
 		}

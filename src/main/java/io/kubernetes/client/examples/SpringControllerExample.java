@@ -64,7 +64,7 @@ public class SpringControllerExample {
 
 		@Bean
 		public Controller nodePrintingController(SharedInformerFactory sharedInformerFactory,
-				ParentReconciler<?> reconciler) {
+				ParentReconciler<?, ?> reconciler) {
 			DefaultControllerBuilder builder = ControllerBuilder.defaultBuilder(sharedInformerFactory);
 			builder = builder.watch((q) -> {
 				return ControllerBuilder.controllerWatchBuilder(V1ConfigClient.class, q)
@@ -81,17 +81,25 @@ public class SpringControllerExample {
 		}
 
 		@Bean
-		public SharedIndexInformer<V1ConfigClient> nodeInformer(ApiClient apiClient,
-				SharedInformerFactory sharedInformerFactory) {
-			return sharedInformerFactory.sharedIndexInformerFor(new GenericKubernetesApi<>(V1ConfigClient.class,
-					V1ConfigClientList.class, "spring.io", "v1", "configclients", apiClient), V1ConfigClient.class, 0);
+		public GenericKubernetesApi<V1ConfigClient, V1ConfigClientList> configClientApi(ApiClient apiClient) {
+			return new GenericKubernetesApi<>(V1ConfigClient.class, V1ConfigClientList.class, "spring.io", "v1",
+					"configclients", apiClient);
 		}
 
 		@Bean
-		public ParentReconciler<V1ConfigClient> configClientReconciler(
+		public SharedIndexInformer<V1ConfigClient> nodeInformer(ApiClient apiClient,
+				SharedInformerFactory sharedInformerFactory,
+				GenericKubernetesApi<V1ConfigClient, V1ConfigClientList> configClientApi) {
+			return sharedInformerFactory.sharedIndexInformerFor(configClientApi, V1ConfigClient.class, 0);
+		}
+
+		@Bean
+		public ParentReconciler<V1ConfigClient, V1ConfigClientList> configClientReconciler(
 				SharedIndexInformer<V1ConfigClient> parentInformer,
-				GenericKubernetesApi<V1ConfigMap, V1ConfigMapList> configClientApi) {
-			return new ParentReconciler<>(parentInformer, Arrays.asList(new ConfigMapReconciler(configClientApi)));
+				GenericKubernetesApi<V1ConfigClient, V1ConfigClientList> configClientApi,
+				GenericKubernetesApi<V1ConfigMap, V1ConfigMapList> configMapApi) {
+			return new ParentReconciler<>(parentInformer, configClientApi,
+					Arrays.asList(new ConfigMapReconciler(configMapApi)));
 		}
 
 	}

@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import javax.annotation.Nullable;
+
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.extended.controller.reconciler.Result;
@@ -81,20 +83,14 @@ public abstract class ChildReconciler<P extends KubernetesObject, T extends Kube
 			return new Result(false);
 		}
 
-		V1OwnerReference v1OwnerReference = new V1OwnerReference();
-		v1OwnerReference.setKind(parent.getKind());
-		v1OwnerReference.setName(parent.getMetadata().getName());
-		v1OwnerReference.setBlockOwnerDeletion(true);
-		v1OwnerReference.setController(true);
-		v1OwnerReference.setUid(parent.getMetadata().getUid());
-		v1OwnerReference.setApiVersion(parent.getApiVersion());
-		desired.getMetadata().addOwnerReferencesItem(v1OwnerReference);
+		setOwner(desired, parent);
 		if (actual == null) {
 			try {
 				actual = children.create(desired).throwsApiException().getObject();
 				logger.debug("Created: \n" + actual);
 			}
 			catch (ApiException e) {
+				reflectStatusOnParent(parent, actual, e);
 				throw new IllegalStateException(e);
 			}
 		}
@@ -109,8 +105,24 @@ public abstract class ChildReconciler<P extends KubernetesObject, T extends Kube
 
 		}
 
+		reflectStatusOnParent(parent, actual, null);
+
 		return new Result(false);
 
+	}
+
+	private void setOwner(T child, P owner) {
+		V1OwnerReference v1OwnerReference = new V1OwnerReference();
+		v1OwnerReference.setKind(owner.getKind());
+		v1OwnerReference.setName(owner.getMetadata().getName());
+		v1OwnerReference.setBlockOwnerDeletion(true);
+		v1OwnerReference.setController(true);
+		v1OwnerReference.setUid(owner.getMetadata().getUid());
+		v1OwnerReference.setApiVersion(owner.getApiVersion());
+		child.getMetadata().addOwnerReferencesItem(v1OwnerReference);
+	}
+
+	protected void reflectStatusOnParent(P parent, T actual, @Nullable ApiException e) {
 	}
 
 	protected void mergeBeforeUpdate(T current, T desired) {
