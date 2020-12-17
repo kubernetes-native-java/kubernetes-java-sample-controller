@@ -95,8 +95,7 @@ public class SpringControllerExample {
 
 		@Bean
 		public ParentReconciler<V1ConfigClient, V1ConfigClientList> configClientReconciler(
-				SharedIndexInformer<V1ConfigClient> parentInformer,
-				GenericKubernetesApi<V1ConfigClient, V1ConfigClientList> configClientApi,
+				SharedIndexInformer<V1ConfigClient> parentInformer, ApiClient configClientApi,
 				GenericKubernetesApi<V1ConfigMap, V1ConfigMapList> configMapApi) {
 			return new ParentReconciler<>(parentInformer, configClientApi,
 					Arrays.asList(new ConfigMapReconciler(configMapApi)));
