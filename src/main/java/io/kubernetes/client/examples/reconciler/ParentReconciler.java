@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import io.kubernetes.client.apimachinery.GroupVersion;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.extended.controller.reconciler.Reconciler;
@@ -29,7 +30,7 @@ import io.kubernetes.client.extended.controller.reconciler.Result;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.util.generic.options.UpdateOptions;
 
 import org.springframework.util.ReflectionUtils;
 
@@ -43,7 +44,7 @@ public class ParentReconciler<T extends KubernetesObject, L extends KubernetesLi
 
 	private SubReconciler<T>[] reconcilers;
 
-	private StatusWriter api;
+	private ApiClient api;
 
 	private String pluralName;
 
@@ -55,7 +56,7 @@ public class ParentReconciler<T extends KubernetesObject, L extends KubernetesLi
 			List<SubReconciler<T>> reconcilers) {
 		this.parentInformer = parentInformer;
 		this.pluralName = pluralName;
-		this.api = new StatusWriter(api);
+		this.api = api;
 		@SuppressWarnings("unchecked")
 		SubReconciler<T>[] array = (SubReconciler<T>[]) reconcilers.toArray();
 		this.reconcilers = array;
@@ -77,12 +78,16 @@ public class ParentReconciler<T extends KubernetesObject, L extends KubernetesLi
 				result = aggregate(subReconciler.reconcile(parent), result);
 			}
 
+			GroupVersion gv = GroupVersion.parse(parent);
+			String pluralName = findPluralName(parent);
+			@SuppressWarnings("unchecked")
+			Class<T> apiType = (Class<T>) parent.getClass();
+			GenericStatusWriter<T> status = new GenericStatusWriter<>(apiType, gv.getGroup(), gv.getVersion(),
+					pluralName, this.api);
+
 			// TODO: make this conditional on the status having changed
-			try {
-				api.update(parent, this::findPluralName, this::extractStatus, null);
-			}
-			catch (ApiException e) {
-				throw new IllegalStateException("Cannot update parent", e);
+			if (!status.updateStatus(parent, this::extractStatus, new UpdateOptions()).isSuccess()) {
+				throw new IllegalStateException("Cannot update parent");
 			}
 
 		}
