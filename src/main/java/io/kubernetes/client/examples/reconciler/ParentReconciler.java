@@ -30,7 +30,7 @@ import io.kubernetes.client.extended.controller.reconciler.Result;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.util.generic.options.UpdateOptions;
+import io.kubernetes.client.util.generic.GenericKubernetesApi;
 
 import org.springframework.util.ReflectionUtils;
 
@@ -82,11 +82,11 @@ public class ParentReconciler<T extends KubernetesObject, L extends KubernetesLi
 			String pluralName = findPluralName(parent);
 			@SuppressWarnings("unchecked")
 			Class<T> apiType = (Class<T>) parent.getClass();
-			GenericStatusWriter<T> status = new GenericStatusWriter<>(apiType, gv.getGroup(), gv.getVersion(),
-					pluralName, this.api);
+			GenericKubernetesApi<T, ?> status = new GenericKubernetesApi<>(apiType, KubernetesListObject.class,
+					gv.getGroup(), gv.getVersion(), pluralName, this.api);
 
 			// TODO: make this conditional on the status having changed
-			if (!status.updateStatus(parent, this::extractStatus, new UpdateOptions()).isSuccess()) {
+			if (!status.updateStatus(parent, this::extractStatus).isSuccess()) {
 				throw new IllegalStateException("Cannot update parent");
 			}
 
