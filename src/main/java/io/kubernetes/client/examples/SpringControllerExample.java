@@ -16,10 +16,12 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
 
 import io.kubernetes.client.examples.models.V1ConfigClient;
 import io.kubernetes.client.examples.models.V1ConfigClientList;
 import io.kubernetes.client.examples.models.V1ConfigClientStatus;
+import io.kubernetes.client.examples.reconciler.ChildProvider;
 import io.kubernetes.client.examples.reconciler.ChildReconciler;
 import io.kubernetes.client.examples.reconciler.ParentReconciler;
 import io.kubernetes.client.extended.controller.Controller;
@@ -53,13 +55,13 @@ public class SpringControllerExample {
 
 		@Bean
 		public CommandLineRunner commandLineRunner(SharedInformerFactory sharedInformerFactory, Controller controller) {
-			return args -> {
+			return args -> Executors.newSingleThreadExecutor().execute(() -> {
 				System.out.println("starting informers..");
 				sharedInformerFactory.startAllRegisteredInformers();
 
 				System.out.println("running controller..");
 				controller.run();
-			};
+			});
 		}
 
 		@Bean
@@ -98,30 +100,25 @@ public class SpringControllerExample {
 				SharedIndexInformer<V1ConfigClient> parentInformer, ApiClient configClientApi,
 				GenericKubernetesApi<V1ConfigMap, V1ConfigMapList> configMapApi) {
 			return new ParentReconciler<>(parentInformer, configClientApi,
-					Arrays.asList(new ConfigMapReconciler(configMapApi)));
+					Arrays.asList(new ChildReconciler<>(configMapApi, new ConfigMapReconciler())));
 		}
 
 	}
 
-	private static class ConfigMapReconciler extends ChildReconciler<V1ConfigClient, V1ConfigMap, V1ConfigMapList> {
-
-		public ConfigMapReconciler(GenericKubernetesApi<V1ConfigMap, V1ConfigMapList> api) {
-			super(api);
-		}
+	private static class ConfigMapReconciler implements ChildProvider<V1ConfigClient, V1ConfigMap> {
 
 		@Override
-		protected void mergeBeforeUpdate(V1ConfigMap current, V1ConfigMap desired) {
-			super.mergeBeforeUpdate(current, desired);
+		public void mergeBeforeUpdate(V1ConfigMap current, V1ConfigMap desired) {
 			current.setData(desired.getData());
 		}
 
 		@Override
-		protected boolean semanticEquals(V1ConfigMap desired, V1ConfigMap actual) {
-			return super.semanticEquals(desired, actual) && mapEquals(desired.getData(), actual.getData());
+		public boolean semanticEquals(V1ConfigMap actual, V1ConfigMap desired) {
+			return ChildProvider.mapEquals(desired.getData(), actual.getData());
 		}
 
 		@Override
-		protected V1ConfigMap desired(V1ConfigClient node) {
+		public V1ConfigMap desired(V1ConfigClient node) {
 			V1ConfigMap config = new V1ConfigMap();
 			config.setApiVersion("v1");
 			config.setKind("ConfigMap");

@@ -17,8 +17,6 @@ package io.kubernetes.client.examples.reconciler;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 import javax.annotation.Nullable;
 
@@ -35,15 +33,18 @@ import org.apache.commons.logging.LogFactory;
  * @author Dave Syer
  *
  */
-public abstract class ChildReconciler<P extends KubernetesObject, T extends KubernetesObject, L extends KubernetesListObject>
+public class ChildReconciler<P extends KubernetesObject, T extends KubernetesObject, L extends KubernetesListObject>
 		implements SubReconciler<P> {
 
 	protected Log logger = LogFactory.getLog(getClass());
 
 	private GenericKubernetesApi<T, L> children;
 
-	public ChildReconciler(GenericKubernetesApi<T, L> api) {
+	private ChildProvider<P, T> provider;
+
+	public ChildReconciler(GenericKubernetesApi<T, L> api, ChildProvider<P, T> provider) {
 		this.children = api;
+		this.provider = provider;
 	}
 
 	@Override
@@ -74,7 +75,7 @@ public abstract class ChildReconciler<P extends KubernetesObject, T extends Kube
 			}
 		}
 
-		T desired = desired(parent);
+		T desired = this.provider.desired(parent);
 		if (desired == null) {
 			if (actual != null) {
 				logger.info("Deleting " + actual);
@@ -97,7 +98,7 @@ public abstract class ChildReconciler<P extends KubernetesObject, T extends Kube
 		else {
 
 			harmonizeImmutableFields(actual, desired);
-			if (!semanticEquals(desired, actual)) {
+			if (!semanticEquals(actual, desired)) {
 				T current = actual;
 				mergeBeforeUpdate(current, desired);
 				children.update(current);
@@ -122,33 +123,26 @@ public abstract class ChildReconciler<P extends KubernetesObject, T extends Kube
 		child.getMetadata().addOwnerReferencesItem(v1OwnerReference);
 	}
 
-	protected void reflectStatusOnParent(P parent, T actual, @Nullable ApiException e) {
+	private void reflectStatusOnParent(P parent, T actual, @Nullable ApiException e) {
+		this.provider.reflectStatusOnParent(parent, actual, e);
 	}
 
-	protected void mergeBeforeUpdate(T current, T desired) {
+	private void mergeBeforeUpdate(T current, T desired) {
 		current.getMetadata().setLabels(desired.getMetadata().getLabels());
+		this.provider.mergeBeforeUpdate(current, desired);
 	}
 
-	protected boolean semanticEquals(T desired, T actual) {
+	private boolean semanticEquals(T actual, T desired) {
 		if (actual == null && desired != null || desired == null && actual != null) {
 			return false;
 		}
-		return actual != null && mapEquals(desired.getMetadata().getLabels(), actual.getMetadata().getLabels());
+		return actual != null
+				&& ChildProvider.mapEquals(desired.getMetadata().getLabels(), actual.getMetadata().getLabels())
+				&& this.provider.semanticEquals(actual, desired);
 	}
 
-	protected void harmonizeImmutableFields(T actual, T desired) {
-	}
-
-	protected abstract T desired(P parent);
-
-	protected static boolean mapEquals(Map<String, String> actual, Map<String, String> desired) {
-		if (actual == null && desired != null) {
-			return desired.isEmpty();
-		}
-		if (desired == null && actual != null) {
-			return actual.isEmpty();
-		}
-		return Objects.equals(actual, desired);
+	private void harmonizeImmutableFields(T actual, T desired) {
+		this.provider.harmonizeImmutableFields(actual, desired);
 	}
 
 }
