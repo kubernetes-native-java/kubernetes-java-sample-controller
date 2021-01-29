@@ -13,7 +13,6 @@ limitations under the License.
 package io.kubernetes.client.examples;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -54,7 +53,8 @@ public class SpringControllerExample {
 	public static class AppConfig {
 
 		@Bean
-		public CommandLineRunner commandLineRunner(SharedInformerFactory sharedInformerFactory, Controller controller) {
+		public CommandLineRunner commandLineRunner(
+				SharedInformerFactory sharedInformerFactory, Controller controller) {
 			return args -> Executors.newSingleThreadExecutor().execute(() -> {
 				System.out.println("starting informers..");
 				sharedInformerFactory.startAllRegisteredInformers();
@@ -65,47 +65,56 @@ public class SpringControllerExample {
 		}
 
 		@Bean
-		public Controller nodePrintingController(SharedInformerFactory sharedInformerFactory,
+		public Controller nodePrintingController(
+				SharedInformerFactory sharedInformerFactory,
 				ParentReconciler<?, ?> reconciler) {
-			DefaultControllerBuilder builder = ControllerBuilder.defaultBuilder(sharedInformerFactory);
+			DefaultControllerBuilder builder = ControllerBuilder
+					.defaultBuilder(sharedInformerFactory);
 			builder = builder.watch((q) -> {
 				return ControllerBuilder.controllerWatchBuilder(V1ConfigClient.class, q)
 						.withResyncPeriod(Duration.ofHours(1)).build();
 			});
 			builder.withWorkerCount(2);
-			return builder.withReconciler(reconciler).withName("configClientController").build();
+			return builder.withReconciler(reconciler).withName("configClientController")
+					.build();
 		}
 
 		@Bean
-		public GenericKubernetesApi<V1ConfigMap, V1ConfigMapList> configMapApi(ApiClient apiClient) {
-			return new GenericKubernetesApi<>(V1ConfigMap.class, V1ConfigMapList.class, "", "v1", "configmaps",
+		public GenericKubernetesApi<V1ConfigMap, V1ConfigMapList> configMapApi(
+				ApiClient apiClient) {
+			return new GenericKubernetesApi<>(V1ConfigMap.class, V1ConfigMapList.class,
+					"", "v1", "configmaps", apiClient);
+		}
+
+		@Bean
+		public GenericKubernetesApi<V1ConfigClient, V1ConfigClientList> configClientApi(
+				ApiClient apiClient) {
+			return new GenericKubernetesApi<>(V1ConfigClient.class,
+					V1ConfigClientList.class, "spring.io", "v1", "configclients",
 					apiClient);
-		}
-
-		@Bean
-		public GenericKubernetesApi<V1ConfigClient, V1ConfigClientList> configClientApi(ApiClient apiClient) {
-			return new GenericKubernetesApi<>(V1ConfigClient.class, V1ConfigClientList.class, "spring.io", "v1",
-					"configclients", apiClient);
 		}
 
 		@Bean
 		public SharedIndexInformer<V1ConfigClient> nodeInformer(ApiClient apiClient,
 				SharedInformerFactory sharedInformerFactory,
 				GenericKubernetesApi<V1ConfigClient, V1ConfigClientList> configClientApi) {
-			return sharedInformerFactory.sharedIndexInformerFor(configClientApi, V1ConfigClient.class, 0);
+			return sharedInformerFactory.sharedIndexInformerFor(configClientApi,
+					V1ConfigClient.class, 0);
 		}
 
 		@Bean
 		public ParentReconciler<V1ConfigClient, V1ConfigClientList> configClientReconciler(
-				SharedIndexInformer<V1ConfigClient> parentInformer, ApiClient configClientApi,
+				SharedIndexInformer<V1ConfigClient> parentInformer,
+				ApiClient configClientApi,
 				GenericKubernetesApi<V1ConfigMap, V1ConfigMapList> configMapApi) {
 			return new ParentReconciler<>(parentInformer, configClientApi,
-					Arrays.asList(new ChildReconciler<>(configMapApi, new ConfigMapReconciler())));
+					new ChildReconciler<>(configMapApi, new ConfigMapReconciler()));
 		}
 
 	}
 
-	private static class ConfigMapReconciler implements ChildProvider<V1ConfigClient, V1ConfigMap> {
+	private static class ConfigMapReconciler
+			implements ChildProvider<V1ConfigClient, V1ConfigMap> {
 
 		@Override
 		public void mergeBeforeUpdate(V1ConfigMap current, V1ConfigMap desired) {

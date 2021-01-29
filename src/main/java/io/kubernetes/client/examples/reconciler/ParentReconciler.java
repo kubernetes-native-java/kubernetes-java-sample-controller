@@ -17,7 +17,6 @@ package io.kubernetes.client.examples.reconciler;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
-import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -38,7 +37,8 @@ import org.springframework.util.ReflectionUtils;
  * @author Dave Syer
  *
  */
-public class ParentReconciler<T extends KubernetesObject, L extends KubernetesListObject> implements Reconciler {
+public class ParentReconciler<T extends KubernetesObject, L extends KubernetesListObject>
+		implements Reconciler {
 
 	private SharedIndexInformer<T> parentInformer;
 
@@ -48,23 +48,26 @@ public class ParentReconciler<T extends KubernetesObject, L extends KubernetesLi
 
 	private String pluralName;
 
-	public ParentReconciler(SharedIndexInformer<T> parentInformer, ApiClient api, List<SubReconciler<T>> reconcilers) {
+	public ParentReconciler(SharedIndexInformer<T> parentInformer, ApiClient api,
+			SubReconciler<?>... reconcilers) {
 		this(null, parentInformer, api, reconcilers);
 	}
 
-	public ParentReconciler(@Nullable String pluralName, SharedIndexInformer<T> parentInformer, ApiClient api,
-			List<SubReconciler<T>> reconcilers) {
+	public ParentReconciler(@Nullable String pluralName,
+			SharedIndexInformer<T> parentInformer, ApiClient api,
+			SubReconciler<?>... reconcilers) {
 		this.parentInformer = parentInformer;
 		this.pluralName = pluralName;
 		this.api = api;
 		@SuppressWarnings("unchecked")
-		SubReconciler<T>[] array = (SubReconciler<T>[]) reconcilers.toArray();
+		SubReconciler<T>[] array = (SubReconciler<T>[]) reconcilers;
 		this.reconcilers = array;
 	}
 
 	@Override
 	public Result reconcile(Request request) {
-		Lister<T> parentLister = new Lister<>(parentInformer.getIndexer(), request.getNamespace());
+		Lister<T> parentLister = new Lister<>(parentInformer.getIndexer(),
+				request.getNamespace());
 		T parent = parentLister.get(request.getName());
 
 		Result result = new Result(false);
@@ -82,8 +85,9 @@ public class ParentReconciler<T extends KubernetesObject, L extends KubernetesLi
 			String pluralName = findPluralName(parent);
 			@SuppressWarnings("unchecked")
 			Class<T> apiType = (Class<T>) parent.getClass();
-			GenericKubernetesApi<T, ?> status = new GenericKubernetesApi<>(apiType, KubernetesListObject.class,
-					gv.getGroup(), gv.getVersion(), pluralName, this.api);
+			GenericKubernetesApi<T, ?> status = new GenericKubernetesApi<>(apiType,
+					KubernetesListObject.class, gv.getGroup(), gv.getVersion(),
+					pluralName, this.api);
 
 			// TODO: make this conditional on the status having changed
 			if (!status.updateStatus(parent, this::extractStatus).isSuccess()) {
@@ -114,9 +118,9 @@ public class ParentReconciler<T extends KubernetesObject, L extends KubernetesLi
 	}
 
 	private Result aggregate(Result result, Result aggregate) {
-		if (aggregate.getRequeueAfter() != null
-				&& (aggregate.getRequeueAfter().isZero() || result.getRequeueAfter() != null
-						&& aggregate.getRequeueAfter().compareTo(result.getRequeueAfter()) > 0)) {
+		if (aggregate.getRequeueAfter() != null && (aggregate.getRequeueAfter().isZero()
+				|| result.getRequeueAfter() != null && aggregate.getRequeueAfter()
+						.compareTo(result.getRequeueAfter()) > 0)) {
 			aggregate.setRequeueAfter(result.getRequeueAfter());
 		}
 		if (result.isRequeue()) {

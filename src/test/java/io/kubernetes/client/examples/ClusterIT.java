@@ -34,6 +34,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,6 +46,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @Testcontainers
 public class ClusterIT {
+
+	@Value("${NAMESPACE:default}")
+	private final String namespace = "default";
 
 	@Autowired
 	private GenericKubernetesApi<V1ConfigClient, V1ConfigClientList> configs;
@@ -61,14 +65,14 @@ public class ClusterIT {
 	@AfterEach
 	public void after() {
 		if (name != null) {
-			configs.delete("default", name);
+			configs.delete(namespace, name);
 		}
 	}
 
 	@Test
 	void createConfigClientAndCheckStatus() throws Exception {
 
-		int before = maps.list("default").getObject().getItems().size();
+		int before = maps.list(namespace).getObject().getItems().size();
 
 		V1ConfigClient client = new V1ConfigClient();
 		client.setKind("ConfigClient");
@@ -76,23 +80,30 @@ public class ClusterIT {
 
 		V1ObjectMeta metadata = new V1ObjectMeta();
 		metadata.setGenerateName("config-client-");
-		metadata.setNamespace("default");
+		metadata.setNamespace(namespace);
 		client.setMetadata(metadata);
 
 		V1ConfigClientSpec spec = new V1ConfigClientSpec();
-		spec.setUrl(
-				"http://" + configserver.getHost() + ":" + configserver.getMappedPort(8888) + "/app/default/master");
+		spec.setUrl("http://" + configserver.getHost() + ":"
+				+ configserver.getMappedPort(8888) + "/app/default/master");
 		client.setSpec(spec);
 
 		KubernetesApiResponse<V1ConfigClient> response = configs.create(client);
 		assertThat(response.isSuccess());
 		V1ConfigClient result = response.getObject();
 		assertThat(result).isNotNull();
+		name = result.getMetadata().getName();
 
-		Awaitility.await().atMost(Duration.ofMinutes(1)).until(
-				() -> configs.get("default", result.getMetadata().getName()).getObject().getStatus().getComplete());
+		Awaitility.await().atMost(Duration.ofMinutes(1)).until(() -> {
+			KubernetesApiResponse<V1ConfigClient> config = configs.get(namespace,
+					result.getMetadata().getName());
+			return config == null || config.getObject() == null
+					|| config.getObject().getStatus() == null ? false
+							: config.getObject().getStatus().getComplete();
+		});
 
-		assertThat(maps.list("default").getObject().getItems().size()).isEqualTo(before + 1);
+		assertThat(maps.list(namespace).getObject().getItems().size())
+				.isEqualTo(before + 1);
 
 	}
 
