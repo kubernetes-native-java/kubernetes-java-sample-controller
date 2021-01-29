@@ -11,7 +11,8 @@
 	</parent>
 
 	<properties>
-		<kubernetes.client.version>11.0.1-SNAPSHOT</kubernetes.client.version>
+		<!--kubernetes.client.version>11.0.1-SNAPSHOT</kubernetes.client.version-->
+		<kubernetes.client.version>master-SNAPSHOT</kubernetes.client.version>
 	</properties>
 	<groupId>org.example</groupId>
 	<version>0.0.1-SNAPSHOT</version>
@@ -20,7 +21,8 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>io.kubernetes</groupId>
+			<!--groupId>io.kubernetes</groupId-->
+			<groupId>com.github.kubernetes-client.java</groupId>
 			<artifactId>client-java-spring-integration</artifactId>
 			<version>${kubernetes.client.version}</version>
 		</dependency>
@@ -102,6 +104,10 @@
 		</pluginRepository>
 	</pluginRepositories>
 	<repositories>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
 		<repository>
 			<id>spring-release</id>
 			<name>Spring release</name>
