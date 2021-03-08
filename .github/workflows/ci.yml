@@ -30,6 +30,12 @@ jobs:
           echo "CLUSTER_NAME=kind" >> $GITHUB_ENV
           echo "NAMESPACE=fats" >> $GITHUB_ENV
         shell: bash
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
       - name: Build Apps
         run: .github/workflows/build.sh
         shell: bash

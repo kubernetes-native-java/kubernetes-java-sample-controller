@@ -6,7 +6,7 @@ A really simple controller that compiles as a native image with [GraalVM](https:
 
 Prerequisite:  you need a Kubernetes cluster, so `kubectl get all` has to be working. 
 
-You also need a snapshot build of the [Kubernetes Java Client](https://github.com/kubernetes-client/java). They don't publish snapshots so you have to build it locally:
+You also need a snapshot build of the [Kubernetes Java Client](https://github.com/kubernetes-client/java). They don't publish snapshots so we use [Jitpack](https://jitpack.io). Or you could build it locally (you'd have to change the dependency version in this project's `pom.xml`):
 
 ```
 git clone https://github.com/kubernetes-client/java /tmp/kubernetes/client
