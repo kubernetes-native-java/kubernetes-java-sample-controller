@@ -33,7 +33,10 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
+import okhttp3.OkHttpClient;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -51,6 +54,8 @@ public class SpringControllerExample {
 
 	@Configuration
 	public static class AppConfig {
+	
+		private Log logger = LogFactory.getLog(AppConfig.class);
 
 		@Bean
 		public CommandLineRunner commandLineRunner(
@@ -107,6 +112,9 @@ public class SpringControllerExample {
 				SharedIndexInformer<V1ConfigClient> parentInformer,
 				ApiClient configClientApi,
 				GenericKubernetesApi<V1ConfigMap, V1ConfigMapList> configMapApi) {
+			if (logger.isDebugEnabled()) {
+				configClientApi.setDebugging(true);
+			}
 			return new ParentReconciler<>(parentInformer, configClientApi,
 					new ChildReconciler<>(configMapApi, new ConfigMapReconciler()));
 		}

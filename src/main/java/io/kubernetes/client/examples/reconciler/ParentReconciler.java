@@ -34,6 +34,7 @@ import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
+import io.kubernetes.client.util.generic.KubernetesApiResponse;
 
 /**
  * @author Dave Syer
@@ -89,7 +90,8 @@ public class ParentReconciler<T extends KubernetesObject, L extends KubernetesLi
 					gv.getGroup(), gv.getVersion(), pluralName, this.api);
 
 			// TODO: make this conditional on the status having changed
-			if (!status.updateStatus(parent, this::extractStatus).isSuccess()) {
+			KubernetesApiResponse<T> update = status.updateStatus(parent, this::extractStatus);
+			if (!update.isSuccess()) {
 				logger.warn("Cannot update parent");
 			}
 

@@ -1269,10 +1269,13 @@
 	{
 		"name": "io.kubernetes.client.examples.models.V1ConfigClient",
 		"allDeclaredFields": true,
-		"allDeclaredMethods": true,
 		"methods": [
 			{
 				"name": "<init>",
+				"parameterTypes": []
+			},
+			{
+				"name": "getStatus",
 				"parameterTypes": []
 			}
 		]
@@ -1314,6 +1317,12 @@
 	},
 	{
 		"name": "io.kubernetes.client.examples.PropertySource",
+		"allDeclaredMethods": true,
+		"allDeclaredConstructors": true
+	},
+	{
+		"name": "io.kubernetes.client.util.generic.GenericKubernetesApi$StatusPatch",
+		"allDeclaredFields": true,
 		"allDeclaredMethods": true,
 		"allDeclaredConstructors": true
 	}
