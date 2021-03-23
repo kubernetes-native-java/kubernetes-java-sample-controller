@@ -1,5 +1,0 @@
-{
-  "resources":[
-    {"pattern":"org/joda/time/tz/data/.*"}
-  ]
-}

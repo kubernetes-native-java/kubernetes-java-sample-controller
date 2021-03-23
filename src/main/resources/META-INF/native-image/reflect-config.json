@@ -1269,6 +1269,7 @@
 	{
 		"name": "io.kubernetes.client.examples.models.V1ConfigClient",
 		"allDeclaredFields": true,
+		"allDeclaredMethods": true,
 		"methods": [
 			{
 				"name": "<init>",
