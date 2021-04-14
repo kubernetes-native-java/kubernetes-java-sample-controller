@@ -22,7 +22,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: bk
-
   labels:
     app: kce
   name: kce
@@ -36,7 +35,7 @@ spec:
         app: kce
     spec:
       containers:
-        - image: gcr.io/pgtm-jlong/kubernetes-client-example
+        - image: gcr.io/pgtm-jlong/kubernetes-controller
           imagePullPolicy: Always
           name: kubernetes-client-example
 

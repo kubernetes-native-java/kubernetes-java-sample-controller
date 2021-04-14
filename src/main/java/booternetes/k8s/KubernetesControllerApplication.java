@@ -87,4 +87,5 @@ public class KubernetesControllerApplication {
 			return new Result(false);
 		};
 	}
+
 }

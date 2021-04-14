@@ -9,11 +9,13 @@
         <version>2.4.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>booternetes2</groupId>
+
+    <groupId>booternetes</groupId>
     <artifactId>kubernetes-controller</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>kubernetes-client-example</name>
-    <description>Demo project for Spring Boot</description>
+
+    <packaging>jar</packaging>
+
     <properties>
         <kubernetes.client.version>12.0.0</kubernetes.client.version>
         <java.version>11</java.version>
