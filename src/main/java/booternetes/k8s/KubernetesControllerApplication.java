@@ -22,8 +22,6 @@ import org.springframework.context.annotation.Bean;
 import java.util.Objects;
 
 /**
- *
- *
  * @author Dave Syer
  * @author Josh Long
  */

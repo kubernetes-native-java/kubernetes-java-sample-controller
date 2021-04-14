@@ -3,7 +3,6 @@ kind: Namespace
 metadata:
   name: bk
 
-
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -18,11 +17,11 @@ roleRef:
   kind: ClusterRole
   name: cluster-admin
 
----  
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: bk 
+  namespace: bk
 
   labels:
     app: kce
@@ -37,7 +36,7 @@ spec:
         app: kce
     spec:
       containers:
-      - image: gcr.io/pgtm-jlong/kubernetes-client-example
-        imagePullPolicy: Always
-        name: kubernetes-client-example
+        - image: gcr.io/pgtm-jlong/kubernetes-client-example
+          imagePullPolicy: Always
+          name: kubernetes-client-example
 
