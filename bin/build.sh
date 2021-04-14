@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-cd $( dirname $0 )/..
-
+HERE="$(dirname $0)"
+echo "current diretory is $HERE "
+cd "${HERE}"/..
+pwd
 mvn io.spring.javaformat:spring-javaformat-maven-plugin:0.0.27:apply
-mvn -DskipTests=true clean package spring-boot:build-image
+mvn  -DskipTests=true clean package spring-boot:build-image

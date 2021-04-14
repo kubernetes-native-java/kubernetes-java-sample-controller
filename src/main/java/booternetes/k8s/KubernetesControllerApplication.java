@@ -52,9 +52,6 @@ public class KubernetesControllerApplication {
 
 	@Bean
 	SharedIndexInformer<V1Node> nodeInformer(ApiClient apiClient, SharedInformerFactory sharedInformerFactory) {
-
-		System.out.println("apiClient: " + apiClient.getHttpClient());
-
 		return sharedInformerFactory.sharedIndexInformerFor(
 				new GenericKubernetesApi<>(V1Node.class, V1NodeList.class, "", "v1", "nodes", apiClient), V1Node.class,
 				0);
@@ -90,5 +87,4 @@ public class KubernetesControllerApplication {
 			return new Result(false);
 		};
 	}
-
 }
