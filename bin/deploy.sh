@@ -1,5 +1,5 @@
 #!/usr/bin/env bash 
-export GCLOUD_PROJECT=pgtm-jlong
+#export GCLOUD_PROJECT=pgtm-jlong
 
 APP_NAME=kubernetes-client-example
 IMAGE_NAME=gcr.io/${GCLOUD_PROJECT}/$APP_NAME

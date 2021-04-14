@@ -1,8 +1,7 @@
-## Using Google Cloud Platform? 
+## A Kubernetes Controller  
 
-You'll need to setup an environment variable, `GOOGLE_APPLICATION_CREDENTIALS`, 
-and point it to the result of [running this `gcloud` incantation 
-against GCP](https://cloud.google.com/docs/authentication/getting-started#command-line).
+This demonstrates writing code against the official Kubernetes API and the autocongiguration that's provided for it.
 
+The Kubernetes API can be used to write controllers, reconcilers, CRDs, and operators. 
 
-You need to install the Kubernetes Java client from source, manually. [See this](https://github.com/kubernetes-client/java)
+This example demonstrates how to build an application that enumerates the pods deployed into a cluster/namespace. 

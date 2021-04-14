@@ -1,12 +1,10 @@
-package bootiful.kubernetesclientexample;
+package booternetes.k8s;
 
 import io.kubernetes.client.extended.controller.Controller;
 import io.kubernetes.client.extended.controller.builder.ControllerBuilder;
 import io.kubernetes.client.extended.controller.reconciler.Reconciler;
-import io.kubernetes.client.extended.controller.reconciler.Request;
 import io.kubernetes.client.extended.controller.reconciler.Result;
 import io.kubernetes.client.informer.SharedIndexInformer;
-import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
@@ -14,32 +12,26 @@ import io.kubernetes.client.openapi.models.V1Node;
 import io.kubernetes.client.openapi.models.V1NodeList;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
-import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
-import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.util.Objects;
 
 /**
  *
- * Run with {@code mvn clean package spring-boot:run }
  *
  * @author Dave Syer
  * @author Josh Long
  */
 @SpringBootApplication
-public class KubernetesClientExampleApplication {
+public class KubernetesControllerApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(KubernetesClientExampleApplication.class, args);
+		SpringApplication.run(KubernetesControllerApplication.class, args);
 	}
 
 	@Bean
@@ -57,7 +49,7 @@ public class KubernetesClientExampleApplication {
 		return ControllerBuilder.defaultBuilder(sharedInformerFactory)
 				.watch(q -> ControllerBuilder.controllerWatchBuilder(V1Node.class, q).build())
 				.withReadyFunc(() -> podInformer.hasSynced() && nodeInformer.hasSynced()).withReconciler(reconciler)
-				.withName("bootifulController").build();
+				.withName("booternetesController").build();
 	}
 
 	@Bean
