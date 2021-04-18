@@ -8,6 +8,5 @@ cd $(dirname $0)/../..
 
 pwd
 
-./bin/build.sh
 
 ./bin/deploy.sh
