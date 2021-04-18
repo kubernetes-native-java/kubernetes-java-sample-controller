@@ -89,7 +89,6 @@
                             <goal>test-generate</goal>
                         </goals>
                     </execution>
-
                     <execution>
                         <id>generate</id>
                         <goals>
