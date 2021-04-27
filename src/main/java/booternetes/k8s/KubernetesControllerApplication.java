@@ -3,6 +3,7 @@ package booternetes.k8s;
 import io.kubernetes.client.extended.controller.Controller;
 import io.kubernetes.client.extended.controller.builder.ControllerBuilder;
 import io.kubernetes.client.extended.controller.reconciler.Reconciler;
+import io.kubernetes.client.extended.controller.reconciler.Request;
 import io.kubernetes.client.extended.controller.reconciler.Result;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
@@ -33,6 +34,9 @@ public class KubernetesControllerApplication {
 	}
 
 	//	---------------------------INFORMER---------------------------
+	//
+	// Bean is an annotation. It's an object that is the returned object from the function that spring created for us
+	// using the function as the producer
 	@Bean
 	SharedIndexInformer<V1Node> nodeInformer(ApiClient apiClient, SharedInformerFactory sharedInformerFactory) {
 		return sharedInformerFactory.sharedIndexInformerFor(
@@ -46,19 +50,29 @@ public class KubernetesControllerApplication {
 		return sharedInformerFactory.sharedIndexInformerFor(
 				new GenericKubernetesApi<>(V1Pod.class, V1PodList.class, "", "v1", "pods", apiClient), V1Pod.class, 0);
 	}
+
 	//	---------------------------LISTER---------------------------
+	// Lists the current nodes and pods that it finds
 	@Bean
-	Lister<V1Node> nodeLister(SharedIndexInformer<V1Node> podInformer) {
-		return new Lister<>(podInformer.getIndexer());
+	Lister<V1Node> nodeLister(SharedIndexInformer<V1Node> informer) {
+		return new Lister<>(informer.getIndexer());
 	}
 
 	@Bean
-	Lister<V1Pod> podLister(SharedIndexInformer<V1Pod> podInformer) {
-		return new Lister<>(podInformer.getIndexer());
+	Lister<V1Pod> podLister(SharedIndexInformer<V1Pod> informer) {
+		return new Lister<>(informer.getIndexer());
 	}
 
 	//	---------------------------RECONCILER---------------------------
 	@Bean
+	// Oh you want to give you for the first parameter a reference to a string in the config -- for namespace value
+	//		return new Reconciler() {
+//			@Override
+//			public Result reconcile(Request request) {
+//				return null;
+//			}
+//		};
+	// below is same as above turned into a lambda
 	Reconciler reconciler(@Value("${namespace}") String namespace, Lister<V1Node> nodeLister, Lister<V1Pod> podLister) {
 		return request -> {
 
@@ -74,7 +88,7 @@ public class KubernetesControllerApplication {
 	}
 	//	---------------------------CONTROLLER---------------------------
 	@Bean
-	Controller nodePrintingController(SharedIndexInformer<V1Pod> podInformer, SharedIndexInformer<V1Node> nodeInformer,
+	Controller controller(SharedIndexInformer<V1Pod> podInformer, SharedIndexInformer<V1Node> nodeInformer,
 									  SharedInformerFactory sharedInformerFactory, Reconciler reconciler) {
 
 		return ControllerBuilder.defaultBuilder(sharedInformerFactory)
