@@ -23,19 +23,19 @@ kind: Deployment
 metadata:
   namespace: bk
   labels:
-    app: kce
-  name: kce
+    app: kubernetes-controller
+  name: kubernetes-controller
 spec:
   selector:
     matchLabels:
-      app: kce
+      app: kubernetes-controller
   template:
     metadata:
       labels:
-        app: kce
+        app: kubernetes-controller
     spec:
       containers:
         - image: gcr.io/pgtm-jlong/kubernetes-controller
           imagePullPolicy: Always
-          name: kubernetes-client-example
+          name: kubernetes-controller
 
