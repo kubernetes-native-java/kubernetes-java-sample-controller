@@ -17,7 +17,7 @@
     <packaging>jar</packaging>
 
     <properties>
-        <kubernetes.client.version>12.0.0</kubernetes.client.version>
+<!--        <kubernetes.client.version>12.0.0</kubernetes.client.version>-->
         <java.version>11</java.version>
 
         <spring-native.version>0.9.1</spring-native.version>
@@ -25,9 +25,11 @@
     </properties>
     <dependencies>
         <dependency>
+<!--            Add dependency/linked library to classpath. Intellij doesn't know about types implied in libary
+right click - maven -reload project -->
             <groupId>io.kubernetes</groupId>
             <artifactId>client-java-spring-integration</artifactId>
-            <version>${kubernetes.client.version}</version>
+            <version>12.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

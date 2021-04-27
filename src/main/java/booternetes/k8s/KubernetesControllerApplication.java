@@ -32,24 +32,7 @@ public class KubernetesControllerApplication {
 		SpringApplication.run(KubernetesControllerApplication.class, args);
 	}
 
-	@Bean
-	CommandLineRunner go(SharedInformerFactory sharedInformerFactory, Controller controller) {
-		return args -> {
-			sharedInformerFactory.startAllRegisteredInformers();
-			controller.run();
-		};
-	}
-
-	@Bean
-	Controller nodePrintingController(SharedIndexInformer<V1Pod> podInformer, SharedIndexInformer<V1Node> nodeInformer,
-			SharedInformerFactory sharedInformerFactory, Reconciler reconciler) {
-
-		return ControllerBuilder.defaultBuilder(sharedInformerFactory)
-				.watch(q -> ControllerBuilder.controllerWatchBuilder(V1Node.class, q).build())
-				.withReadyFunc(() -> podInformer.hasSynced() && nodeInformer.hasSynced()).withReconciler(reconciler)
-				.withName("booternetesController").build();
-	}
-
+	//	---------------------------INFORMER---------------------------
 	@Bean
 	SharedIndexInformer<V1Node> nodeInformer(ApiClient apiClient, SharedInformerFactory sharedInformerFactory) {
 		return sharedInformerFactory.sharedIndexInformerFor(
@@ -57,12 +40,13 @@ public class KubernetesControllerApplication {
 				0);
 	}
 
+	//	copy paste node informer and change node -> pod
 	@Bean
 	SharedIndexInformer<V1Pod> podInformer(ApiClient apiClient, SharedInformerFactory sharedInformerFactory) {
 		return sharedInformerFactory.sharedIndexInformerFor(
 				new GenericKubernetesApi<>(V1Pod.class, V1PodList.class, "", "v1", "pods", apiClient), V1Pod.class, 0);
 	}
-
+	//	---------------------------LISTER---------------------------
 	@Bean
 	Lister<V1Node> nodeLister(SharedIndexInformer<V1Node> podInformer) {
 		return new Lister<>(podInformer.getIndexer());
@@ -73,6 +57,7 @@ public class KubernetesControllerApplication {
 		return new Lister<>(podInformer.getIndexer());
 	}
 
+	//	---------------------------RECONCILER---------------------------
 	@Bean
 	Reconciler reconciler(@Value("${namespace}") String namespace, Lister<V1Node> nodeLister, Lister<V1Pod> podLister) {
 		return request -> {
@@ -87,5 +72,22 @@ public class KubernetesControllerApplication {
 			return new Result(false);
 		};
 	}
+	//	---------------------------CONTROLLER---------------------------
+	@Bean
+	Controller nodePrintingController(SharedIndexInformer<V1Pod> podInformer, SharedIndexInformer<V1Node> nodeInformer,
+									  SharedInformerFactory sharedInformerFactory, Reconciler reconciler) {
 
+		return ControllerBuilder.defaultBuilder(sharedInformerFactory)
+				.watch(q -> ControllerBuilder.controllerWatchBuilder(V1Node.class, q).build())
+				.withReadyFunc(() -> podInformer.hasSynced() && nodeInformer.hasSynced()).withReconciler(reconciler)
+				.withName("booternetesController").build();
+	}
+
+	@Bean
+	CommandLineRunner go(SharedInformerFactory sharedInformerFactory, Controller controller) {
+		return args -> {
+			sharedInformerFactory.startAllRegisteredInformers();
+			controller.run();
+		};
+	}
 }
