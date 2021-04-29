@@ -24,9 +24,9 @@
 
     </properties>
     <dependencies>
-        <dependency>
-<!--            Add dependency/linked library to classpath. Intellij doesn't know about types implied in libary
+        <!--            Add dependency/linked library to classpath. Intellij doesn't know about types implied in libary
 right click - maven -reload project -->
+        <dependency>
             <groupId>io.kubernetes</groupId>
             <artifactId>client-java-spring-integration</artifactId>
             <version>12.0.0</version>
