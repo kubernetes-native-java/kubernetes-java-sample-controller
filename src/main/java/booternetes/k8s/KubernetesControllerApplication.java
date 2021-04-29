@@ -73,9 +73,9 @@ public class KubernetesControllerApplication {
 //			}
 //		};
 	// below is same as above turned into a lambda
-	Reconciler reconciler(@Value("${namespace}") String namespace, Lister<V1Node> nodeLister, Lister<V1Pod> podLister) {
+	Reconciler reconciler(Lister<V1Node> nodeLister, Lister<V1Pod> podLister) {
 		return request -> {
-
+			String namespace = "bk";
 			V1Node node = nodeLister.get(request.getName());
 			System.out.println("get all pods in namespace " + namespace);
 			podLister.namespace(namespace).list().stream()
