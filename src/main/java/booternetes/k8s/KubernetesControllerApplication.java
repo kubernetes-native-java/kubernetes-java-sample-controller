@@ -44,7 +44,6 @@ public class KubernetesControllerApplication {
 				0);
 	}
 
-	//	copy paste node informer and change node -> pod
 	@Bean
 	SharedIndexInformer<V1Pod> podInformer(ApiClient apiClient, SharedInformerFactory sharedInformerFactory) {
 		return sharedInformerFactory.sharedIndexInformerFor(
@@ -53,6 +52,7 @@ public class KubernetesControllerApplication {
 
 	//	---------------------------LISTER---------------------------
 	// Lists the current nodes and pods that it finds
+	// What is getIndexer?
 	@Bean
 	Lister<V1Node> nodeLister(SharedIndexInformer<V1Node> informer) {
 		return new Lister<>(informer.getIndexer());
@@ -64,7 +64,6 @@ public class KubernetesControllerApplication {
 	}
 
 	//	---------------------------RECONCILER---------------------------
-	@Bean
 	// Oh you want to give you for the first parameter a reference to a string in the config -- for namespace value
 	//		return new Reconciler() {
 //			@Override
@@ -73,16 +72,21 @@ public class KubernetesControllerApplication {
 //			}
 //		};
 	// below is same as above turned into a lambda
+	@Bean
 	Reconciler reconciler(Lister<V1Node> nodeLister, Lister<V1Pod> podLister) {
 		return request -> {
-			String namespace = "bk";
-			V1Node node = nodeLister.get(request.getName());
-			System.out.println("get all pods in namespace " + namespace);
-			podLister.namespace(namespace).list().stream()
-					.map(pod -> Objects.requireNonNull(pod.getMetadata()).getName())
+			var namespace = "bk";
+			var node = nodeLister.get(request.getName());
+
+			System.out.println("node: " + node.getMetadata().getName());
+
+			podLister
+					.namespace(namespace)
+					.list()
+					.stream()
+					.map(pod -> pod.getMetadata().getName())
 					.forEach(podName -> System.out.println("pod name: " + podName));
 
-			System.out.println("triggered reconciling " + node.getMetadata().getName());
 			return new Result(false);
 		};
 	}
@@ -91,10 +95,13 @@ public class KubernetesControllerApplication {
 	Controller controller(SharedIndexInformer<V1Pod> podInformer, SharedIndexInformer<V1Node> nodeInformer,
 									  SharedInformerFactory sharedInformerFactory, Reconciler reconciler) {
 
-		return ControllerBuilder.defaultBuilder(sharedInformerFactory)
+		return ControllerBuilder
+				.defaultBuilder(sharedInformerFactory)
 				.watch(q -> ControllerBuilder.controllerWatchBuilder(V1Node.class, q).build())
-				.withReadyFunc(() -> podInformer.hasSynced() && nodeInformer.hasSynced()).withReconciler(reconciler)
-				.withName("booternetesController").build();
+				.withReadyFunc(() -> podInformer.hasSynced() && nodeInformer.hasSynced())
+				.withReconciler(reconciler)
+				.withName("booternetesController")
+				.build();
 	}
 
 	@Bean
