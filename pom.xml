@@ -10,7 +10,7 @@
     </parent>
     <groupId>booternetes</groupId>
     <artifactId>kubernetes-controller</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
     <name>kubernetes-controller</name>
     <description>Demo project for Spring Boot</description>
     <properties>
@@ -38,6 +38,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>booternetes</groupId>
+            <artifactId>spring-native-kubernetes</artifactId>
+            <version>0.0.2-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -63,7 +68,7 @@
                     <dependency>
                         <groupId>booternetes</groupId>
                         <artifactId>spring-native-kubernetes</artifactId>
-                        <version>0.0.1-SNAPSHOT</version>
+                        <version>0.0.2-SNAPSHOT</version>
                     </dependency>
                 </dependencies>
                 <executions>
