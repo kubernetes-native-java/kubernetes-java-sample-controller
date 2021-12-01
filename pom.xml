@@ -84,13 +84,13 @@
                 <groupId>org.springframework.experimental</groupId>
                 <artifactId>spring-aot-maven-plugin</artifactId>
                 <version>${spring-native.version}</version>
-                <dependencies>
+             <!--   <dependencies>
                     <dependency>
                         <groupId>booternetes</groupId>
                         <artifactId>spring-native-kubernetes</artifactId>
                         <version>0.0.2-SNAPSHOT</version>
                     </dependency>
-                </dependencies>
+                </dependencies>-->
                 <executions>
                     <execution>
                         <id>test-generate</id>
