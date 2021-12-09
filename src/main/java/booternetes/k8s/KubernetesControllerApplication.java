@@ -19,11 +19,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
+import java.util.Objects;
+
 /**
  * @author Dave Syer
  * @author Josh Long
  */
-
 @Log4j2
 @SpringBootApplication
 public class KubernetesControllerApplication {
@@ -32,11 +33,6 @@ public class KubernetesControllerApplication {
 		SpringApplication.run(KubernetesControllerApplication.class, args);
 	}
 
-	// ---------------------------INFORMER---------------------------
-	//
-	// Bean is an annotation. It's an object that is the returned object from the function
-	// that spring created for us
-	// using the function as the producer
 	@Bean
 	SharedIndexInformer<V1Node> nodeInformer(ApiClient apiClient, SharedInformerFactory sharedInformerFactory) {
 		return sharedInformerFactory.sharedIndexInformerFor(
@@ -50,7 +46,6 @@ public class KubernetesControllerApplication {
 				new GenericKubernetesApi<>(V1Pod.class, V1PodList.class, "", "v1", "pods", apiClient), V1Pod.class, 0);
 	}
 
-	// ---------------------------LISTER---------------------------
 	// Lists the current nodes and pods that it finds
 	@Bean
 	Lister<V1Node> nodeLister(SharedIndexInformer<V1Node> informer) {
@@ -68,16 +63,16 @@ public class KubernetesControllerApplication {
 			var namespace = "bk";
 			var node = nodeLister.get(request.getName());
 
-			System.out.println("node: " + node.getMetadata().getName());
+			System.out.println("node: " + Objects.requireNonNull(node.getMetadata()).getName());
 
-			podLister.namespace(namespace).list().stream().map(pod -> pod.getMetadata().getName())
+			podLister.namespace(namespace).list().stream()
+					.map(pod -> Objects.requireNonNull(pod.getMetadata()).getName())
 					.forEach(podName -> System.out.println("pod name: " + podName));
 
 			return new Result(false);
 		};
 	}
 
-	// ---------------------------CONTROLLER---------------------------
 	@Bean
 	Controller controller(SharedIndexInformer<V1Pod> podInformer, SharedIndexInformer<V1Node> nodeInformer,
 			SharedInformerFactory sharedInformerFactory, Reconciler reconciler) {
