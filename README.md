@@ -1,6 +1,6 @@
 ## A Kubernetes Controller  
 
-This demonstrates writing code against the official Kubernetes API and the autocongiguration that's provided for it.
+This demonstrates writing code against the official Kubernetes API and the autoconfiguration that's provided for it.
 
 The Kubernetes API can be used to write controllers, reconcilers, CRDs, and operators. 
 
