@@ -60,7 +60,7 @@ public class KubernetesControllerApplication {
 	@Bean
 	Reconciler reconciler(Lister<V1Node> nodeLister, Lister<V1Pod> podLister) {
 		return request -> {
-			var namespace = "bk";
+			var namespace = "default";
 			var node = nodeLister.get(request.getName());
 
 			System.out.println("node: " + Objects.requireNonNull(node.getMetadata()).getName());
