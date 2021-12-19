@@ -13,7 +13,6 @@ import io.kubernetes.client.openapi.models.V1NodeList;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -25,7 +24,7 @@ import java.util.Objects;
  * @author Dave Syer
  * @author Josh Long
  */
-@Log4j2
+
 @SpringBootApplication
 public class KubernetesControllerApplication {
 
