@@ -1,4 +1,4 @@
-package booternetes.k8s;
+package io.kubernetesnativejava.kubernetes.sample;
 
 import io.kubernetes.client.extended.controller.Controller;
 import io.kubernetes.client.extended.controller.builder.ControllerBuilder;
@@ -21,10 +21,14 @@ import org.springframework.context.annotation.Bean;
 import java.util.Objects;
 
 /**
+ *
+ * This is a simple controller that uses the official Kubernetes Java client to manipulate
+ * the Kubernetes API. It was inspired by an example that the good Dr. Dave Syer (Thanks,
+ * doc!) originally put together.
+ *
  * @author Dave Syer
  * @author Josh Long
  */
-
 @SpringBootApplication
 public class KubernetesControllerApplication {
 

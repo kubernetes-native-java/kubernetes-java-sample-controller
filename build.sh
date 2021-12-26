@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-mvn -Pnative -DskipTests=true clean package && ./target/kubernetes-controller
+mvn -Pnative -DskipTests=true clean package && ./target/kubernetes-java-sample-controller
