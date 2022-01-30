@@ -17,6 +17,11 @@ spec:
       containers:
         - image: springcloud/configserver
           name: configserver
+          env:
+            - name: SPRING_CLOUD_CONFIG_SERVER_GIT_URI
+              value: "https://github.com/joshlong/crm-config.git"
+            - name : SPRING_CLOUD_CONFIG_SERVER_DEFAULT_LABEL
+              value: "main"
           ports:
             - containerPort: 8888
               name: configserver

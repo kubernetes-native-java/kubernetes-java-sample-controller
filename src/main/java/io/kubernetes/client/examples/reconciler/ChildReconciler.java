@@ -26,6 +26,7 @@ import io.kubernetes.client.extended.controller.reconciler.Result;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1OwnerReference;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -33,10 +34,9 @@ import org.apache.commons.logging.LogFactory;
  * @author Dave Syer
  *
  */
+@Slf4j
 public class ChildReconciler<P extends KubernetesObject, T extends KubernetesObject, L extends KubernetesListObject>
 		implements SubReconciler<P> {
-
-	protected Log logger = LogFactory.getLog(getClass());
 
 	private GenericKubernetesApi<T, L> children;
 
@@ -49,7 +49,7 @@ public class ChildReconciler<P extends KubernetesObject, T extends KubernetesObj
 
 	@Override
 	public Result reconcile(P parent) {
-		logger.info("Reconciling: " + parent.getKind() + " - " + parent.getMetadata().getName());
+		log.info("Reconciling: " + parent.getKind() + " - " + parent.getMetadata().getName());
 		List<T> items = new ArrayList<>();
 		for (KubernetesObject item : children.list(parent.getMetadata().getNamespace()).getObject().getItems()) {
 			if (item.getMetadata().getOwnerReferences() != null) {
@@ -70,7 +70,7 @@ public class ChildReconciler<P extends KubernetesObject, T extends KubernetesObj
 		}
 		else {
 			for (T item : items) {
-				logger.info("Deleting " + item);
+				log.info("Deleting " + item);
 				children.delete(item.getMetadata().getNamespace(), item.getMetadata().getName());
 			}
 		}
@@ -78,7 +78,7 @@ public class ChildReconciler<P extends KubernetesObject, T extends KubernetesObj
 		T desired = this.provider.desired(parent);
 		if (desired == null) {
 			if (actual != null) {
-				logger.info("Deleting " + actual);
+				log.info("Deleting " + actual);
 				children.delete(actual.getMetadata().getNamespace(), actual.getMetadata().getName());
 			}
 			return new Result(false);
@@ -88,7 +88,7 @@ public class ChildReconciler<P extends KubernetesObject, T extends KubernetesObj
 		if (actual == null) {
 			try {
 				actual = children.create(desired).throwsApiException().getObject();
-				logger.debug("Created: \n" + actual);
+				log.debug("Created: \n" + actual);
 			}
 			catch (ApiException e) {
 				reflectStatusOnParent(parent, actual, e);
@@ -113,7 +113,7 @@ public class ChildReconciler<P extends KubernetesObject, T extends KubernetesObj
 	}
 
 	private void setOwner(T child, P owner) {
-		V1OwnerReference v1OwnerReference = new V1OwnerReference();
+		var v1OwnerReference = new V1OwnerReference();
 		v1OwnerReference.setKind(owner.getKind());
 		v1OwnerReference.setName(owner.getMetadata().getName());
 		v1OwnerReference.setBlockOwnerDeletion(true);

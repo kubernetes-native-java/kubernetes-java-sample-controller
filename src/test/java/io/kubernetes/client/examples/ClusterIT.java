@@ -1,21 +1,19 @@
 /*
- * Copyright 2019-2019 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright 2019-2019 the original author or authors.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      https://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 package io.kubernetes.client.examples;
-
-import java.time.Duration;
 
 import io.kubernetes.client.examples.models.V1ConfigClient;
 import io.kubernetes.client.examples.models.V1ConfigClientList;
@@ -27,21 +25,22 @@ import io.kubernetes.client.util.generic.GenericKubernetesApi;
 import io.kubernetes.client.util.generic.KubernetesApiResponse;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Dave Syer
- *
  */
 @SpringBootTest
 @Testcontainers
@@ -71,39 +70,37 @@ public class ClusterIT {
 
 	@Test
 	void createConfigClientAndCheckStatus() throws Exception {
+		var before = maps.list(namespace).getObject().getItems().size();
 
-		int before = maps.list(namespace).getObject().getItems().size();
-
-		V1ConfigClient client = new V1ConfigClient();
+		var client = new V1ConfigClient();
 		client.setKind("ConfigClient");
 		client.setApiVersion("spring.io/v1");
 
-		V1ObjectMeta metadata = new V1ObjectMeta();
+		var metadata = new V1ObjectMeta();
 		metadata.setGenerateName("config-client-");
 		metadata.setNamespace(namespace);
 		client.setMetadata(metadata);
 
-		V1ConfigClientSpec spec = new V1ConfigClientSpec();
-		spec.setUrl("http://" + configserver.getHost() + ":"
-				+ configserver.getMappedPort(8888) + "/app/default/main");
+		var spec = new V1ConfigClientSpec();
+		spec.setUrl(
+				"http://" + configserver.getHost() + ":" + configserver.getMappedPort(8888) + "/app/default/main");
 		client.setSpec(spec);
 
-		KubernetesApiResponse<V1ConfigClient> response = configs.create(client);
-		assertThat(response.isSuccess());
+		var response = configs.create(client);
+		Assertions.assertTrue(response.isSuccess());
 		V1ConfigClient result = response.getObject();
 		assertThat(result).isNotNull();
 		name = result.getMetadata().getName();
-
 		Awaitility.await().atMost(Duration.ofMinutes(1)).until(() -> {
-			KubernetesApiResponse<V1ConfigClient> config = configs.get(namespace,
-					result.getMetadata().getName());
-			return config == null || config.getObject() == null
-					|| config.getObject().getStatus() == null ? false
-							: config.getObject().getStatus().getComplete();
+			KubernetesApiResponse<V1ConfigClient> config = configs.get(namespace, result.getMetadata().getName());
+			return config != null && //
+			config.getObject() != null && //
+			config.getObject().getStatus() != null && //
+			config.getObject().getStatus().getComplete() != null && //
+			config.getObject().getStatus().getComplete().equals(Boolean.TRUE);
 		});
 
-		assertThat(maps.list(namespace).getObject().getItems().size())
-				.isEqualTo(before + 1);
+		assertThat(maps.list(namespace).getObject().getItems().size()).isEqualTo(before + 1);
 
 	}
 
