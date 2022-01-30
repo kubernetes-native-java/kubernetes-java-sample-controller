@@ -1,4 +1,4 @@
-FROM springci/spring-graalvm-native:master-java8
+FROM springci/spring-native:java11-0.11.x
 
 ARG USER
 ARG USER_ID
