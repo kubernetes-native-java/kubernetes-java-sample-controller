@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches:
+    - '**'
+    - '!dependabot/**'
+  pull_request: {}
+
+jobs:
+
+  fats:
+    name: FATS
+    if: success() && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    env:
+      CLUSTER: kind
+      REGISTRY: docker-daemon
+      DOCKER_BUILDKIT: 1
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '1.8'
+      - uses: helm/kind-action@v1.1.0
+      - name: Setup env
+        run: |
+          job=$(date +%s) # TODO use something that is assigned by CI to guarantee uniqueness
+          echo "JOB_ID=${job}"
+          echo "CLUSTER_NAME=kind" >> $GITHUB_ENV
+          echo "NAMESPACE=fats" >> $GITHUB_ENV
+        shell: bash
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Build Apps
+        run: .github/workflows/build.sh
+        shell: bash
+        timeout-minutes: 30
+      - name: Run Tests
+        run: .github/workflows/run.sh
+        shell: bash
+        timeout-minutes: 30
+      - name: Cleanup Tests
+        run: .github/workflows/cleanup.sh
+        shell: bash
+        if: always()
+        timeout-minutes: 10

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: configserver
+  labels:
+    app: configserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      configserver: configserver
+  template:
+    metadata:
+      labels:
+        configserver: configserver
+    spec:
+      containers:
+        - image: springcloud/configserver
+          name: configserver
+          env:
+            - name: SPRING_CLOUD_CONFIG_SERVER_GIT_URI
+              value: "https://github.com/joshlong/crm-config.git"
+            - name : SPRING_CLOUD_CONFIG_SERVER_DEFAULT_LABEL
+              value: "main"
+          ports:
+            - containerPort: 8888
+              name: configserver
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: configserver
+  labels:
+    configserver: configserver
+spec:
+  ports:
+    - port: 80
+      targetPort: 8888
+  selector:
+    configserver: configserver
