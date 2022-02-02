@@ -3,4 +3,4 @@ kind: ConfigClient
 metadata:
   name: demo
 spec:
-  url: http://localhost:8888/app/default/master
+  url: http://localhost:8888/app/default/main

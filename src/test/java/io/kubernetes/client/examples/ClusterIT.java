@@ -85,7 +85,7 @@ public class ClusterIT {
 
 		V1ConfigClientSpec spec = new V1ConfigClientSpec();
 		spec.setUrl("http://" + configserver.getHost() + ":"
-				+ configserver.getMappedPort(8888) + "/app/default/master");
+				+ configserver.getMappedPort(8888) + "/app/default/main");
 		client.setSpec(spec);
 
 		KubernetesApiResponse<V1ConfigClient> response = configs.create(client);
