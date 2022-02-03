@@ -20,23 +20,24 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.extended.controller.reconciler.Result;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1OwnerReference;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * @author Dave Syer
  *
  */
-@Slf4j
 public class ChildReconciler<P extends KubernetesObject, T extends KubernetesObject, L extends KubernetesListObject>
 		implements SubReconciler<P> {
+
+	private static Log log = LogFactory.getLog(ChildReconciler.class);
 
 	private GenericKubernetesApi<T, L> children;
 

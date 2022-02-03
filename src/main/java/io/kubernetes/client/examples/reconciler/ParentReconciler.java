@@ -20,7 +20,6 @@ import java.util.Collections;
 
 import javax.annotation.Nullable;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.util.ReflectionUtils;
@@ -41,8 +40,9 @@ import io.kubernetes.client.util.generic.KubernetesApiResponse;
  * @author Dave Syer
  *
  */
-@Slf4j
 public class ParentReconciler<T extends KubernetesObject, L extends KubernetesListObject> implements Reconciler {
+
+	private static Log log = LogFactory.getLog(ParentReconciler.class);
 
 	private SharedIndexInformer<T> parentInformer;
 

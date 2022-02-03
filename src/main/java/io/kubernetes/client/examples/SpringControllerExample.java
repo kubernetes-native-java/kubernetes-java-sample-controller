@@ -12,6 +12,23 @@ limitations under the License.
 */
 package io.kubernetes.client.examples;
 
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Executors;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.nativex.hint.TypeAccess;
+import org.springframework.nativex.hint.TypeHint;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
+
 import io.kubernetes.client.examples.models.V1ConfigClient;
 import io.kubernetes.client.examples.models.V1ConfigClientList;
 import io.kubernetes.client.examples.models.V1ConfigClientStatus;
@@ -27,23 +44,6 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.nativex.hint.TypeAccess;
-import org.springframework.nativex.hint.TypeHint;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
-
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Executors;
 
 @TypeHint(types = { Environment.class, PropertySource.class },
 		access = { TypeAccess.DECLARED_FIELDS, TypeAccess.DECLARED_METHODS, TypeAccess.DECLARED_CONSTRUCTORS,
@@ -55,9 +55,10 @@ public class SpringControllerExample {
 		SpringApplication.run(SpringControllerExample.class, args);
 	}
 
-	@Slf4j
 	@Configuration
 	public static class AppConfig {
+
+		private static Log log = LogFactory.getLog(AppConfig.class);
 
 		@Bean
 		public CommandLineRunner commandLineRunner(SharedInformerFactory sharedInformerFactory, Controller controller) {
@@ -113,8 +114,9 @@ public class SpringControllerExample {
 
 	}
 
-	@Slf4j
 	private static class ConfigMapReconciler implements ChildProvider<V1ConfigClient, V1ConfigMap> {
+
+		private static Log log = LogFactory.getLog(ConfigMapReconciler.class);
 
 		@Override
 		public void mergeBeforeUpdate(V1ConfigMap current, V1ConfigMap desired) {
