@@ -12,4 +12,4 @@ export NAMESPACE=${NAMESPACE-fats}
 basedir=$(realpath `dirname "${BASH_SOURCE[0]}"`/../..)
 cd ${basedir}
 
-./mvnw test -D test=ClusterIT
+./mvnw verify -D skip-its=false

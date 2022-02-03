@@ -14,10 +14,11 @@
 	<name>spring-controller</name>
 
 	<properties>
-		<java.version>11</java.version>
+		<java.version>17</java.version>
 		<repackage.classifier />
 		<spring-native.version>0.11.2</spring-native.version>
 		<testcontainers.version>1.16.2</testcontainers.version>
+		<skip-its>true</skip-its>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -80,8 +81,13 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
 				<configuration>
-					<argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
+					<!-- re-enable this to run integration test (you need a k8s cluster) -->
+					<skipITs>${skip-its}</skipITs>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -102,12 +108,6 @@
 				<artifactId>spring-aot-maven-plugin</artifactId>
 				<version>${spring-native.version}</version>
 				<executions>
-					<execution>
-						<id>test-generate</id>
-						<goals>
-							<goal>test-generate</goal>
-						</goals>
-					</execution>
 					<execution>
 						<id>generate</id>
 						<goals>
