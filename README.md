@@ -65,6 +65,8 @@ output:
 No resources found in default namespace.
 ```
 
+There is an integration test which is diabled on the command line by default. If there is a Kubernetes cluster available, you can run it from the IDE, or you can run on the command line with `./mvnw verify -D skip-its=false`.
+
 ## Native Image
 
 Build and extract a native image:
