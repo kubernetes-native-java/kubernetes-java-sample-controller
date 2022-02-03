@@ -81,3 +81,13 @@ Run it:
 ```
 ./target/app
 ```
+
+The above incantation won't work if you're not using Linux, so run the controller
+within the Docker image. It'll need your Kubernetes configuration file, which 
+you make available to the container.
+
+```
+./mvnw spring-boot:build-image
+id=$(docker images -aq spring-controller )
+docker run -v $HOME/.kube/:/home/cnb/.kube $id 
+```
