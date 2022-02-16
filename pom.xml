@@ -37,8 +37,8 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.joshlong</groupId>
-            <artifactId>hints</artifactId>
+            <groupId>io.kubernetesnativejava</groupId>
+            <artifactId>kubernetes-java-spring-native</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
